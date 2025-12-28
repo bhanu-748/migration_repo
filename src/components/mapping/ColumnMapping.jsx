@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-export default function ColumnMapping({ sourceConfig, destinationConfig }) {
+export default function ColumnMapping({ sourceConfig, destinationConfig, autoJoin }) {
 
   const [sourceColumns, setSourceColumns] = useState([]);
   const [destinationColumns, setDestinationColumns] = useState([]);
@@ -38,15 +38,12 @@ export default function ColumnMapping({ sourceConfig, destinationConfig }) {
         }
       }
 
-      // remove duplicates
       const unique = [...new Set(allCols)];
-
       setSourceColumns(unique.map(name => ({ column_name: name })));
     };
 
     fetchColumns();
   }, [sourceConfig?.selectedTables]);
-
 
 
   // 🟢 Fetch Destination Columns
@@ -70,12 +67,8 @@ export default function ColumnMapping({ sourceConfig, destinationConfig }) {
   }, [destinationConfig?.table]);
 
 
-  // Handle Mapping
   const handleMapping = (sourceCol, destCol) => {
-    setMapping(prev => ({
-      ...prev,
-      [sourceCol]: destCol
-    }));
+    setMapping(prev => ({ ...prev, [sourceCol]: destCol }));
   };
 
 
@@ -102,13 +95,15 @@ export default function ColumnMapping({ sourceConfig, destinationConfig }) {
     const payload = {
       source: {
         ...sourceConfig,
-        tables: sourceConfig.selectedTables
+        tables: sourceConfig?.selectedTables || [],
+        joins: sourceConfig?.joins || []
       },
       destination: {
         ...destinationConfig,
         table: destinationConfig.table
       },
-      mapping
+      mapping,
+      autoJoin
     };
 
     console.log("🚀 FINAL MULTI-TABLE MIGRATION PAYLOAD", payload);
@@ -130,7 +125,6 @@ export default function ColumnMapping({ sourceConfig, destinationConfig }) {
 
     setIsMigrating(false);
   };
-
 
 
   return (
@@ -189,7 +183,6 @@ export default function ColumnMapping({ sourceConfig, destinationConfig }) {
           </table>
 
 
-          {/* Mapping Preview */}
           <div className="mt-4 bg-gray-100 p-3 rounded">
             <h3 className="font-semibold mb-1 text-gray-700">
               Current Mapping
